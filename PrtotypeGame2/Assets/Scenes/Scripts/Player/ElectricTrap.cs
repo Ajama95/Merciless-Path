@@ -1,11 +1,13 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.SceneManagement;
 using UnityEngine;
 
 public class ElectricTrap : MonoBehaviour
 {
-    float TrapDelay = 400f;
+    float TrapDelay = 10f;
     bool TrapTimer = false;
+    public Animation anim;
     // Start is called before the first frame update
     void Start()
     {
@@ -13,6 +15,11 @@ public class ElectricTrap : MonoBehaviour
     }
     private void Update()
     {
+        anim = gameObject.GetComponent<Animation>();
+        if (TrapDelay<2)
+        {
+            //anim.Play;
+        }
         if(TrapTimer == true)
         {
             TrapDelay--;
@@ -22,7 +29,7 @@ public class ElectricTrap : MonoBehaviour
     // Update is called once per frame
     void OnTriggerEnter(Collider col)
     {
-        if(col.gameObject.tag == "Player")
+        if(col.gameObject.tag == "Player") //activate trap when player enters
         {
             TrapTimer = true;
            
@@ -32,7 +39,8 @@ public class ElectricTrap : MonoBehaviour
     {
         if (col.gameObject.tag == "Player" && TrapDelay <=0)
         {
-            Destroy(col.gameObject);                                      ///destroy object if it stays in the the collider
+
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);                                   ///destroy object if it stays in the the collider
         }
     }
     void OnTriggerExit(Collider col)

@@ -4,76 +4,103 @@ using UnityEngine;
 
 public class Dashing : MonoBehaviour
 {
-    private bool groundedPlayer;
-    public float Dashforce = -15.0f;
-    private float DashForceBack = -6.0f;
+    
+    public float Dashforce;
+    public float distanceBetweenImages;
+    public float DashTime;
+    public int Dashes = 3;
     public float DashStartTime;
-    public float CurrentDashTime;
-    float dashDirection;
-    float moveX;
+    private float LastImageXpos;
+    bool JustDashed;
+    bool StopDash;
+    private bool groundedPlayer;
     private bool isDashing;
+    Vector3 Playervector;
+    private int Direction;
+    private float moveX;
+    public float P_Drag;
+    
     Rigidbody rb;
     // Start is called before the first frame update
     void Start()
     {
         rb = GetComponent<Rigidbody>();
+        DashTime = DashStartTime;
     }
 
     // Update is called once per frame
     void Update()
     {
         moveX = Input.GetAxis("Horizontal");
-
         Dashmanager();
 
-        ////Dash backwards by pressing q
-        if (Input.GetKeyDown(KeyCode.Q) && groundedPlayer == true)
-        {
-            //sliding animation here
-            rb.AddForce(new Vector2(DashForceBack, 0), (ForceMode)ForceMode2D.Impulse);
-            
-        }
+     
     }
     private void OnCollisionEnter(Collision col)
     {
-        //Check to see if the tag on the collider is equal to Enemy
+        //Check to see if the tag on the collider is equal to ground
         if (col.collider.tag == "ground")
         {
+            P_Drag = 0; //remove drag
             groundedPlayer = true;
-            Debug.Log("im grounded ");
+            JustDashed = false;
+            StopDash = false;
+            Dashes = 2;
+            //Debug.Log("im grounded ");
         }
 
     }
     private void Dashmanager()
     {
-
-
-        ///dash forward by pressing e
-        if (Input.GetKeyDown(KeyCode.LeftShift))
+        if (Direction == 0)
         {
-            //sliding animation here
-            isDashing = true;
-            CurrentDashTime = DashStartTime;
-            dashDirection = (int)moveX;
+            if (Input.GetKeyDown(KeyCode.E))
+            {
+                if (moveX < 0 )
+                {
+                    Direction = 1;
 
-           
+                }
+                else if (moveX > 0 )
+                {
+                    Dashes--;
+                    Direction = 2;
+                }
+            }
+        } else
+        {
+            if (DashTime <= 0)
+            {
+                Direction = 0;
+                DashTime = DashStartTime;
+                rb.velocity = Vector3.zero;
+                Dashes--;
+            }
+            else
+            {
+                DashTime -= Time.deltaTime; //decrease time
+                if (Mathf.Abs(transform.position.x - LastImageXpos) > distanceBetweenImages)
+                {
+                    LastImageXpos = transform.position.x;
+                }
+                if (Direction == 1 ) //dash depending on direction 
+                {
+                    rb.velocity = Vector2.left * Dashforce;
+                    Dashes--;
+                }
+                else if (Direction == 2 )
+                {
+                    Dashes--;
+                    rb.velocity = Vector2.right * Dashforce;
+                    P_afterimage_pooling.Instance.GetfromPool();
+                    LastImageXpos = transform.position.x;
+                }
+            }
 
         }
 
-        if (isDashing)
-        {
-           
-            rb.AddForce(new Vector2(Dashforce, 0), (ForceMode)ForceMode2D.Impulse);
-            rb.drag = 40;
-            CurrentDashTime -=Time.deltaTime;
-        }
-        if(CurrentDashTime <=0 && isDashing == true)
-        {
-            isDashing = false;
-            rb.velocity = Vector3.zero;
-            rb.drag = 0;
-            rb.useGravity = true;
-        }
-       
     }
-}
+
+    }
+
+
